@@ -89,7 +89,8 @@ def simulate_with_quests(num_users, weeks, quests_df):
     """
     Simule l'accumulation de points à partir d'un tableau de quêtes.
     
-    Pour chaque utilisateur et chaque semaine, une réussite pour chaque quête est simulée selon sa probabilité.
+    Pour chaque utilisateur et chaque semaine, la réussite de chaque quête est simulée
+    selon la probabilité définie et ajoute le score correspondant.
     """
     results = []
     
@@ -98,7 +99,7 @@ def simulate_with_quests(num_users, weeks, quests_df):
         for week in range(weeks):
             week_points = 0
             for idx, quest in quests_df.iterrows():
-                # Si la quête est réussie (selon la probabilité définie)
+                # Si la quête est réussie (selon sa probabilité définie)
                 if np.random.rand() < quest["Probabilité de réussite"]:
                     week_points += quest["Score attribué"]
             total_points += week_points
@@ -112,14 +113,13 @@ def simulate_with_quests(num_users, weeks, quests_df):
 st.title("Prototype de Simulation Points Autonomics")
 
 st.markdown("""
-Ce prototype vous permet de simuler différentes approches d'attribution de points.
-Vous pouvez configurer des scénarios dynamiques, activer des bonus, simuler des incitations non dilutives
-et gérer dynamiquement un tableau de quêtes avec leurs scores et probabilités.
+Ce prototype vous permet de simuler différentes approches d'attribution de points.  
+Vous pouvez configurer des scénarios dynamiques, activer des bonus, simuler des incitations non dilutives,  
+et gérer dynamiquement un tableau de quêtes dans le menu principal.
 """)
 
-# Sidebar – Configuration générale
-st.sidebar.header("Configuration Générale de la Simulation")
-
+# Sidebar – Configuration Générale de la Simulation
+st.sidebar.header("Configuration de la Simulation")
 num_users = st.sidebar.number_input("Nombre d'utilisateurs simulés", min_value=1, max_value=1000, value=100, step=1)
 weeks = st.sidebar.slider("Durée de la simulation (en semaines)", min_value=1, max_value=52, value=12)
 scenario = st.sidebar.selectbox("Choix du scénario", options=["Optimiste", "Pessimiste", "Mixte"])
@@ -130,25 +130,29 @@ use_bonus_rules = st.sidebar.checkbox("Activer Bonus pour séries", value=True)
 use_incitation_mode = st.sidebar.checkbox("Activer incitations non dilutives", value=False)
 compare_token_points = st.sidebar.checkbox("Analyse comparative Token vs Points", value=False)
 
-st.sidebar.markdown("---")
-st.sidebar.header("Gestion des Quêtes")
+st.markdown("---")
+st.header("Gestion des Quêtes")
 
-# Tableau des quêtes éditable via l'interface
+st.markdown("""
+Dans cette section, vous pouvez gérer les quêtes en attribuant un nom, un score et une probabilité de réussite à chaque quête.  
+Vous pourrez ensuite intégrer ces quêtes dans la simulation.
+""")
+# Tableau des quêtes éditable dans le menu principal
 default_quests = pd.DataFrame({
     "Nom de la Quête": ["Connexion quotidienne", "Publication d'article", "Participation à un vote"],
     "Score attribué": [50, 150, 75],
     "Probabilité de réussite": [0.9, 0.7, 0.8]
 })
 quests_df = st.experimental_data_editor(default_quests, num_rows="dynamic", key="quests_editor")
-st.sidebar.markdown("Modifier le tableau des quêtes ci-dessous :")
-st.sidebar.dataframe(quests_df)
+st.write("Tableau des quêtes actuellement définies:")
+st.dataframe(quests_df)
 
-# Section de lancement de simulation
 st.markdown("---")
+st.header("Lancement de la Simulation Globale")
 if st.sidebar.button("Lancer la Simulation Globale"):
     st.write("Exécution de la simulation...")
     
-    # Simulation sans utilisation du module Quêtes
+    # Simulation sans quêtes
     df_sim = simulate_points(num_users, weeks, scenario, bonus_multiplier,
                              prob_success, penalty, use_bonus_rules, use_incitation_mode)
     
@@ -185,10 +189,8 @@ if st.sidebar.button("Lancer la Simulation Globale"):
     # Module d'analyse comparative : tokens vs points
     if compare_token_points:
         st.markdown("### Analyse Comparative : Points vs Tokens")
-        # Simulation alternative pour le système basé sur les tokens
         df_token = simulate_points(num_users, weeks, scenario, bonus_multiplier=1.0, 
                                    prob_success=prob_success, penalty=penalty, use_bonus_rules=False, use_incitation_mode=False)
-        # On applique un facteur de conversion aléatoire pour simuler des tokens
         df_token["Total Tokens"] = df_token["Total Points"] * np.random.uniform(0.8, 1.2, size=num_users)
         st.write("Comparaison entre les distributions de Points et de Tokens")
         fig_compare = go.Figure()
@@ -200,7 +202,7 @@ if st.sidebar.button("Lancer la Simulation Globale"):
 st.markdown("---")
 st.header("Simulation avec Quêtes")
 st.markdown("""
-Dans cette section, les quêtes définies dans le tableau sont utilisées pour calculer le score de chaque utilisateur.  
+Cette simulation utilise le tableau de quêtes défini pour attribuer un score à chaque utilisateur.  
 Pour chaque semaine, la réussite de chaque quête (selon sa probabilité) ajoute un score spécifique.
 """)
 if st.button("Lancer la Simulation avec Quêtes"):
@@ -216,11 +218,12 @@ if st.button("Lancer la Simulation avec Quêtes"):
 st.markdown("""
 ---
 ### À Propos de ce Prototype
-Ce code constitue une base complète pour simuler et analyser des systèmes de points dynamiques, intégrant :
-- **Des Scénarios Multiples** et un paramétrage en temps réel pour ajuster les règles d'attribution de points.
-- **Un Module de Gestion des Quêtes** vous permettant de définir et d'affiner les actions (quêtes) récompensées.
-- **Des Visualisations Interactives** (Histogramme, Courbe de Lorenz, Répartition par Classement) pour mesurer la distribution et l'équité.
-- **Une Option d'Analyse Comparative** entre un système basé sur les points et un système basé sur les tokens.
+Ce code constitue une base complète pour simuler et analyser des systèmes de points dynamiques.  
+Il intègre :
+- Des scénarios multiples avec paramétrage en temps réel.
+- Un module de gestion des quêtes accessible dans le menu principal.
+- Des visualisations interactives (Histogramme, Courbe de Lorenz, Répartition par Classement).
+- Une option d'analyse comparative entre un système basé sur les points et un système basé sur les tokens.
 
-N'hésitez pas à adapter ce code selon vos besoins métiers et techniques pour approfondir les simulations et explorer de nouvelles configurations.
+N'hésitez pas à adapter et enrichir ce prototype selon vos besoins métiers !
 """)
