@@ -45,7 +45,7 @@ def simulate_points(num_users, weeks, scenario, bonus_multiplier, prob_success, 
         weekly_points = []
         total_points = 0
         # Simulation d'une durée d'engagement aléatoire si le mode incitations non dilutives est activé
-        engagement_duration = np.random.randint(1, weeks+1) if use_incitation_mode else weeks
+        engagement_duration = np.random.randint(1, weeks + 1) if use_incitation_mode else weeks
         
         for week in range(weeks):
             base_points = np.random.randint(50, 150)
@@ -88,7 +88,7 @@ def simulate_points(num_users, weeks, scenario, bonus_multiplier, prob_success, 
 def simulate_with_quests(num_users, weeks, quests_df):
     """
     Simule l'accumulation de points à partir d'un tableau de quêtes.
-    
+
     Pour chaque utilisateur et chaque semaine, la réussite de chaque quête est simulée
     selon la probabilité définie et ajoute le score correspondant.
     """
@@ -115,7 +115,7 @@ st.title("Prototype de Simulation Points Autonomics")
 st.markdown("""
 Ce prototype vous permet de simuler différentes approches d'attribution de points.  
 Vous pouvez configurer des scénarios dynamiques, activer des bonus, simuler des incitations non dilutives,  
-et gérer dynamiquement un tableau de quêtes dans le menu principal.
+et gérer dynamiquement un tableau de quêtes via un fichier CSV.
 """)
 
 # Sidebar – Configuration Générale de la Simulation
@@ -134,18 +134,26 @@ st.markdown("---")
 st.header("Gestion des Quêtes")
 
 st.markdown("""
-Dans cette section, vous pouvez gérer les quêtes en attribuant un nom, un score et une probabilité de réussite à chaque quête.  
-Vous pourrez ensuite intégrer ces quêtes dans la simulation.
+Dans cette section, vous pouvez gérer les quêtes en fournissant un fichier CSV contenant :
+- **Nom de la Quête** : Le nom de la tâche à réaliser.
+- **Score attribué** : Le nombre de points attribués en cas de succès.
+- **Probabilité de réussite** : La chance d’obtenir ces points lors d'une tentative.
 """)
-# Tableau des quêtes éditable dans le menu principal
-default_quests = pd.DataFrame({
-    "Nom de la Quête": ["Connexion quotidienne", "Publication d'article", "Participation à un vote"],
-    "Score attribué": [50, 150, 75],
-    "Probabilité de réussite": [0.9, 0.7, 0.8]
-})
-quests_df = st.experimental_data_editor(default_quests, num_rows="dynamic", key="quests_editor")
-st.write("Tableau des quêtes actuellement définies:")
-st.dataframe(quests_df)
+
+uploaded_file = st.file_uploader("Téléchargez un fichier CSV avec vos quêtes", type=["csv"], key="quests_uploader")
+if uploaded_file is not None:
+    quests_df = pd.read_csv(uploaded_file)
+    st.write("Tableau des quêtes mis à jour :")
+    st.dataframe(quests_df)
+else:
+    default_quests = pd.DataFrame({
+        "Nom de la Quête": ["Connexion quotidienne", "Publication d'article", "Participation à un vote"],
+        "Score attribué": [50, 150, 75],
+        "Probabilité de réussite": [0.9, 0.7, 0.8]
+    })
+    quests_df = default_quests.copy()
+    st.write("Tableau des quêtes par défaut :")
+    st.dataframe(quests_df)
 
 st.markdown("---")
 st.header("Lancement de la Simulation Globale")
@@ -221,7 +229,7 @@ st.markdown("""
 Ce code constitue une base complète pour simuler et analyser des systèmes de points dynamiques.  
 Il intègre :
 - Des scénarios multiples avec paramétrage en temps réel.
-- Un module de gestion des quêtes accessible dans le menu principal.
+- Un module de gestion des quêtes accessible dans le menu principal via téléchargement d'un fichier CSV.
 - Des visualisations interactives (Histogramme, Courbe de Lorenz, Répartition par Classement).
 - Une option d'analyse comparative entre un système basé sur les points et un système basé sur les tokens.
 
